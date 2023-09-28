@@ -13,6 +13,7 @@ from nltk import word_tokenize
 from sklearn.manifold import TSNE
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay, RocCurveDisplay
 from sklearn.preprocessing import LabelBinarizer
+from sklearn.metrics import roc_auc_score
 
 from classification import ModelReport
 
@@ -25,8 +26,10 @@ models_path = log_path + 'classification-models/'
 np.set_printoptions(threshold=np.inf)
 
 
+''''DATASET'''
+
 def log_df_info(df: pd.DataFrame):
-    new_path = log_path + "df-info.txt"
+    new_path = dataset_path + "df-info.txt"
     file = open(new_path, 'w')
     file.write('Dataframe shape: ' + str(df.shape) + '\n')
     file.write('Mean length of the transcription in corpus: ' + str(__mean_length_transcriptions(df)) + '\n')
@@ -38,7 +41,7 @@ def plot_df(df: pd.DataFrame):
 
 
 def log_classes(df: pd.DataFrame):
-    new_path = log_path + 'classes.txt'
+    new_path = dataset_path + 'classes.txt'
     classes = df.groupby(df['medical_specialty'])
     f = open(new_path, 'w')
     for cat_name, data_category in classes:
@@ -55,24 +58,57 @@ def plot_classes(df: pd.DataFrame):
     plt.clf()
 
 
+def __mean_length_transcriptions(df):
+    array = df['transcription'].apply(lambda n: len(str(n).split()))
+    return np.mean(array)
+
+
+'''TEXT REPRESENTATION'''
+
+
 def log_features(features):
-    new_path = log_path + 'features.txt'
+    new_path = vectorization_path + 'features.txt'
     file = open(new_path, 'w')
     file.write('Number of features: ' + str(len(features)) + '\n')
     file.write(str(features))
     file.close()
 
 
-def __mean_length_transcriptions(df):
-    array = df['transcription'].apply(lambda n: len(str(n).split()))
-    return np.mean(array)
+def plot_tfidf_matrix(tfidf_matrix, labels, filename):
+    new_path = vectorization_path + '/' + filename + '.png'
+    gc.collect()
+    tsne_results = TSNE(n_components=2, init='random', random_state=0, perplexity=40).fit_transform(tfidf_matrix)
+    plt.figure(figsize=(20, 10))
+    palette = sns.hls_palette(12, l=.3, s=.9)
+    sns.scatterplot(
+        x=tsne_results[:, 0], y=tsne_results[:, 1],
+        hue=labels,
+        palette=palette,
+        legend="full",
+        alpha=0.3
+    )
+    plt.savefig(new_path)
+    plt.clf()
+
+
+def log_features_examples(df, number):
+    new_path = vectorization_path + 'features-example.txt'
+    file = open(new_path, 'w')
+    for i in range(1, number):
+        text = df.iloc[i]['transcription']
+        features = word_tokenize(text)
+        file.write('Transcription ' + str(i) + ' [' + str(len(features)) + ']: ' + str(features) + '\n')
+    file.close()
+
+
+''''CLASSIFICATION'''
 
 
 def log_model_reports(predictions, y_test, labels, txt: bool = False, csv: bool = False):
     if not txt and not csv:
         return
     for i in range(0, len(predictions)):
-        file_name = models_path + str(predictions[i][1]) + '/' + str(predictions[i][1])
+        file_name = models_path + str(predictions[i][2]) + '/' + str(predictions[i][2])
         y_prediction = predictions[i][0]
         if txt:
             cr = classification_report(y_test, y_prediction, labels=labels)
@@ -101,23 +137,6 @@ def log_report(report: ModelReport, file_name):
         file.close()
 
 
-def plot_tfidf_matrix(tfidf_matrix, labels, filename):
-    new_path = vectorization_path + 'tfidf-matrix/' + filename + '.png'
-    gc.collect()
-    tsne_results = TSNE(n_components=2, init='random', random_state=0, perplexity=40).fit_transform(tfidf_matrix)
-    plt.figure(figsize=(20, 10))
-    palette = sns.hls_palette(12, l=.3, s=.9)
-    sns.scatterplot(
-        x=tsne_results[:, 0], y=tsne_results[:, 1],
-        hue=labels,
-        palette=palette,
-        legend="full",
-        alpha=0.3
-    )
-    plt.savefig(new_path)
-    plt.clf()
-
-
 def plot_confusion_matrix(y_test, y_prediction, labels, file_name):
     new_path = vectorization_path + 'confusion-matrix/' + file_name + '.png'
     cm = confusion_matrix(y_true=y_test, y_pred=y_prediction, labels=labels)
@@ -131,7 +150,7 @@ def plot_confusion_matrix(y_test, y_prediction, labels, file_name):
 def plot_confusion_matrices(predictions, y_test, labels):
     for i in range(0, len(predictions)):
         y_prediction = predictions[i][0]
-        new_path = models_path + str(predictions[i][1]) + '/' + str(predictions[i][1]) + '.png'
+        new_path = models_path + str(predictions[i][2]) + '/' + str(predictions[i][2]) + '.png'
         cm = confusion_matrix(y_true=y_test, y_pred=y_prediction, labels=labels)
         disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
         disp.plot(xticks_rotation='vertical')
@@ -140,28 +159,34 @@ def plot_confusion_matrices(predictions, y_test, labels):
         plt.clf()
 
 
-def log_features_examples(df, number):
-    new_path = log_path + 'features-example.txt'
-    file = open(new_path, 'w')
-    for i in range(1, number):
-        text = df.iloc[i]['transcription']
-        features = word_tokenize(text)
-        file.write('Transcription ' + str(i) + ' [' + str(len(features)) + ']: ' + str(features) + '\n')
-    file.close()
+def log_roc_auc_score(predictions, y_test):
+    for i in range(0, len(predictions)):
+        y_score = predictions[i][1]
+        model = predictions[i][2]
+        micro_roc_auc_ovr = roc_auc_score(
+            y_test,
+            y_score,
+            multi_class="ovr",
+            average="micro",
+        )
+        model_name = str(predictions[i][2])
+        new_path = models_path + model_name + '/' + model_name + '.txt'
+        with open(new_path, 'a') as file:
+            file.write("ROC AUC: " + str(micro_roc_auc_ovr))
+            file.close()
 
 
 def plot_roc_curves(predictions, y_train, y_test, classes):
-    roc_path = 'log/classification-models/'
     label_binarizer = LabelBinarizer().fit(y_train)
     y_onehot = label_binarizer.transform(y_test)
     for i in range(0, len(predictions)):
-        model_path = roc_path + str(predictions[i][1])
-        y_score = predictions[i][0]
+        model_path = models_path + str(predictions[i][2]) + '/roc/'
+        y_score = predictions[i][1]
         for class_of_interest in classes:
             class_id = np.flatnonzero(label_binarizer.classes_ == class_of_interest)[0]
-            RocCurveDisplay.from_estimator(
+            RocCurveDisplay.from_predictions(
                 y_onehot[:, class_id],
-                y=y_score,
+                y_score[:, class_id],
                 name=f"{class_of_interest} vs the rest",
                 color="darkorange",
                 plot_chance_level=True,

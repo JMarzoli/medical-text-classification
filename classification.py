@@ -16,16 +16,16 @@ svm_path = path + '/support-vector-machine'
 rf_path = path + '/random-forest'
 dt_path = path + '/decision-tree'
 
-if os.path.exists(lr_path):
-    os.remove(lr_path)
-if os.path.exists(nb_path):
-    os.remove(nb_path)
-if os.path.exists(svm_path):
-    os.remove(svm_path)
-if os.path.exists(rf_path):
-    os.remove(rf_path)
-if os.path.exists(dt_path):
-    os.remove(dt_path)
+# if os.path.exists(lr_path):
+#     os.remove(lr_path)
+# if os.path.exists(nb_path):
+#     os.remove(nb_path)
+# if os.path.exists(svm_path):
+#     os.remove(svm_path)
+# if os.path.exists(rf_path):
+#     os.remove(rf_path)
+# if os.path.exists(dt_path):
+#     os.remove(dt_path)
 
 
 def logistic_regression(X_train, X_test, y_train):
@@ -47,19 +47,19 @@ def naive_bayes(X_train, X_test, y_train):
     else:
         with open(nb_path, 'rb') as file:
             gnb = pickle.load(file)
-    return gnb.predict(X_test)
+    return gnb.predict(X_test), gnb.predict_proba(X_test)
 
 
 def support_vector_machine(X_train, X_test, y_train):
     if not os.path.exists(svm_path):
         # creating a Logistic Regression Model and training it
-        svc = svm.SVC().fit(X_train, y_train)
+        svc = svm.SVC(probability=True).fit(X_train, y_train)
         with open(svm_path, 'wb') as file:
             pickle.dump(svc, file)
     else:
         with open(svm_path, 'rb') as file:
             svc = pickle.load(file)
-    return svc.predict(X_test)
+    return svc.predict(X_test), svc.predict_proba(X_test)
 
 
 def random_forest(X_train, X_test, y_train):
@@ -70,7 +70,7 @@ def random_forest(X_train, X_test, y_train):
     else:
         with open(rf_path, 'rb') as file:
             rf = pickle.load(file)
-    return rf.predict(X_test)
+    return rf.predict(X_test), rf.predict_proba(X_test)
 
 
 def decision_tree(X_train, X_test, y_train):
@@ -81,7 +81,7 @@ def decision_tree(X_train, X_test, y_train):
     else:
         with open(dt_path, 'rb') as file:
             dt = pickle.load(file)
-    return dt.predict(X_test)
+    return dt.predict(X_test), dt.predict_proba(X_test)
 
 
 # Class for easily storing metrics of models

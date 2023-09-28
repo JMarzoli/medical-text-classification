@@ -1,18 +1,19 @@
                             precision    recall  f1-score   support
 
-Cardiovascular / Pulmonary       0.53      0.74      0.62        93
-                 Neurology       0.37      0.43      0.40        79
-                   Urology       0.64      0.61      0.63        59
-                 Radiology       0.08      0.07      0.08        68
+Cardiovascular / Pulmonary       0.54      0.77      0.64        93
+                 Neurology       0.35      0.35      0.35        79
+                   Urology       0.75      0.69      0.72        59
+                 Radiology       0.09      0.09      0.09        68
    Psychiatry / Psychology       0.98      0.96      0.97        93
-     Pediatrics - Neonatal       0.33      0.29      0.31        17
-                Orthopedic       0.61      0.64      0.63        89
-             Ophthalmology       1.00      0.76      0.86        21
-   Obstetrics / Gynecology       0.70      0.67      0.68        39
-     Hematology - Oncology       0.20      0.04      0.07        23
-          Gastroenterology       0.72      0.61      0.66        56
-      ENT - Otolaryngology       0.72      0.54      0.62        24
+     Pediatrics - Neonatal       0.27      0.24      0.25        17
+                Orthopedic       0.58      0.62      0.60        89
+             Ophthalmology       1.00      0.71      0.83        21
+   Obstetrics / Gynecology       0.74      0.67      0.70        39
+     Hematology - Oncology       0.17      0.04      0.07        23
+          Gastroenterology       0.66      0.62      0.64        56
+      ENT - Otolaryngology       0.71      0.50      0.59        24
 
                   accuracy                           0.58       661
-                 macro avg       0.57      0.53      0.54       661
-              weighted avg       0.58      0.58      0.58       661
+                 macro avg       0.57      0.52      0.54       661
+              weighted avg       0.58      0.58      0.57       661
+ROC AUC: 0.8898814867925988

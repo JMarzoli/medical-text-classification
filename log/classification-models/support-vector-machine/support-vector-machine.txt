@@ -16,3 +16,4 @@ Cardiovascular / Pulmonary       0.66      0.72      0.69        93
                   accuracy                           0.66       661
                  macro avg       0.67      0.63      0.64       661
               weighted avg       0.67      0.66      0.66       661
+ROC AUC: 0.9532457604672032
