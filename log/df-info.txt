@@ -1,0 +1,2 @@
+Dataframe shape: (2324, 2)
+Mean length of the transcription in corpus: 265.5580895008606

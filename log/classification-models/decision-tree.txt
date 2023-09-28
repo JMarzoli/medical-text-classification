@@ -1,0 +1,18 @@
+                            precision    recall  f1-score   support
+
+Cardiovascular / Pulmonary       0.60      0.59      0.60        93
+                 Neurology       0.33      0.38      0.35        79
+                   Urology       0.75      0.56      0.64        59
+                 Radiology       0.09      0.09      0.09        68
+   Psychiatry / Psychology       0.94      0.94      0.94        93
+     Pediatrics - Neonatal       0.11      0.12      0.11        17
+                Orthopedic       0.58      0.52      0.55        89
+             Ophthalmology       0.71      0.71      0.71        21
+   Obstetrics / Gynecology       0.50      0.49      0.49        39
+     Hematology - Oncology       0.12      0.13      0.12        23
+          Gastroenterology       0.47      0.59      0.52        56
+      ENT - Otolaryngology       0.41      0.38      0.39        24
+
+                  accuracy                           0.51       661
+                 macro avg       0.47      0.46      0.46       661
+              weighted avg       0.52      0.51      0.52       661
