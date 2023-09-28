@@ -36,7 +36,7 @@ def logistic_regression(X_train, X_test, y_train):
     else:
         with open(lr_path, 'rb') as file:
             clf = pickle.load(file)
-    return clf.predict(X_test)
+    return clf.predict(X_test), clf.predict_proba(X_test)
 
 
 def naive_bayes(X_train, X_test, y_train):
@@ -85,7 +85,7 @@ def decision_tree(X_train, X_test, y_train):
 
 
 # Class for easily storing metrics of models
-class Report:
+class ModelReport:
     accuracy = None  # number of correctly classified / number of all instance
     recall = None  # % of correctly labelled positive instance out of all positive labelled instance (TP/TP+FN)
     precision = None  # of correctly labelled positive instance out of all positive instance (TP/TP+FP)

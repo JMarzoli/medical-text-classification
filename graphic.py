@@ -11,13 +11,16 @@ from matplotlib import pyplot as plt
 import gc
 from nltk import word_tokenize
 from sklearn.manifold import TSNE
-from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay, RocCurveDisplay
+from sklearn.preprocessing import LabelBinarizer
 
-from classification import Report
+from classification import ModelReport
 
 log_path = 'log/'
-plot_path = log_path + 'plots/'
-reports_path = log_path + 'classification-models'
+dataset_path = log_path + 'dataset/'
+vectorization_path = log_path + 'text-representation/'
+models_path = log_path + 'classification-models/'
+
 
 np.set_printoptions(threshold=np.inf)
 
@@ -30,7 +33,7 @@ def log_df_info(df: pd.DataFrame):
 
 
 def plot_df(df: pd.DataFrame):
-    new_path = plot_path + 'processed-dataframe.png'
+    new_path = dataset_path + 'processed-dataframe.png'
     dfi.export(df, new_path, max_rows=30)
 
 
@@ -45,7 +48,7 @@ def log_classes(df: pd.DataFrame):
 
 
 def plot_classes(df: pd.DataFrame):
-    new_path = plot_path + 'classes.png'
+    new_path = dataset_path + 'classes.png'
     plt.figure(figsize=(14, 10))
     sns.countplot(y='medical_specialty', data=df)
     plt.savefig(new_path)
@@ -65,20 +68,25 @@ def __mean_length_transcriptions(df):
     return np.mean(array)
 
 
-def log_report_txt(y_test, y_prediction, labels, file_name):
-    new_path = reports_path + '/' + file_name + '.txt'
-    with open(new_path, 'w') as file:
-        file.write(str(classification_report(y_test, y_prediction, labels=labels)))
-        file.close()
+def log_model_reports(predictions, y_test, labels, txt: bool = False, csv: bool = False):
+    if not txt and not csv:
+        return
+    for i in range(0, len(predictions)):
+        file_name = models_path + str(predictions[i][1]) + '/' + str(predictions[i][1])
+        y_prediction = predictions[i][0]
+        if txt:
+            cr = classification_report(y_test, y_prediction, labels=labels)
+            txt_path = file_name + '.txt'
+            with open(txt_path, 'w') as txt:
+                txt.write(str(cr))
+                txt.close()
+        if csv:
+            cr = classification_report(y_test, y_prediction, labels=labels, output_dict=True)
+            csv_path = file_name + '.csv'
+            pd.DataFrame(cr).transpose().to_csv(csv_path)
 
 
-def log_report_csv(y_test, y_prediction, labels, file_name):
-    new_path = reports_path + '/' + file_name + '.csv'
-    cr = classification_report(y_test, y_prediction, labels=labels, output_dict=True)
-    df = pd.DataFrame(cr).transpose().to_csv(new_path)
-
-
-def log_report(report: Report, file_name):
+def log_report(report: ModelReport, file_name):
     table = PrettyTable()
     table.field_names = ['Metric', 'Value']
     table.add_row(["Accuracy", report.accuracy])
@@ -87,14 +95,14 @@ def log_report(report: Report, file_name):
     table.add_row(["F1", report.f1])
     table.add_row(["Roc", report.roc])
     table.add_row(["Auc", report.auc])
-    new_path = reports_path + '/' + file_name
+    new_path = models_path + '/' + file_name
     with open(new_path, 'w') as file:
         file.write(table.get_string())
         file.close()
 
 
 def plot_tfidf_matrix(tfidf_matrix, labels, filename):
-    new_path = plot_path + 'tfidf-matrix/' + filename + '.png'
+    new_path = vectorization_path + 'tfidf-matrix/' + filename + '.png'
     gc.collect()
     tsne_results = TSNE(n_components=2, init='random', random_state=0, perplexity=40).fit_transform(tfidf_matrix)
     plt.figure(figsize=(20, 10))
@@ -111,13 +119,25 @@ def plot_tfidf_matrix(tfidf_matrix, labels, filename):
 
 
 def plot_confusion_matrix(y_test, y_prediction, labels, file_name):
-    new_path = plot_path + 'confusion-matrix/' + file_name + '.png'
+    new_path = vectorization_path + 'confusion-matrix/' + file_name + '.png'
     cm = confusion_matrix(y_true=y_test, y_pred=y_prediction, labels=labels)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
     disp.plot(xticks_rotation='vertical')
     plt.tight_layout()
     plt.savefig(new_path)
     plt.clf()
+
+
+def plot_confusion_matrices(predictions, y_test, labels):
+    for i in range(0, len(predictions)):
+        y_prediction = predictions[i][0]
+        new_path = models_path + str(predictions[i][1]) + '/' + str(predictions[i][1]) + '.png'
+        cm = confusion_matrix(y_true=y_test, y_pred=y_prediction, labels=labels)
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
+        disp.plot(xticks_rotation='vertical')
+        plt.tight_layout()
+        plt.savefig(new_path)
+        plt.clf()
 
 
 def log_features_examples(df, number):
@@ -128,4 +148,32 @@ def log_features_examples(df, number):
         features = word_tokenize(text)
         file.write('Transcription ' + str(i) + ' [' + str(len(features)) + ']: ' + str(features) + '\n')
     file.close()
+
+
+def plot_roc_curves(predictions, y_train, y_test, classes):
+    roc_path = 'log/classification-models/'
+    label_binarizer = LabelBinarizer().fit(y_train)
+    y_onehot = label_binarizer.transform(y_test)
+    for i in range(0, len(predictions)):
+        model_path = roc_path + str(predictions[i][1])
+        y_score = predictions[i][0]
+        for class_of_interest in classes:
+            class_id = np.flatnonzero(label_binarizer.classes_ == class_of_interest)[0]
+            RocCurveDisplay.from_estimator(
+                y_onehot[:, class_id],
+                y=y_score,
+                name=f"{class_of_interest} vs the rest",
+                color="darkorange",
+                plot_chance_level=True,
+            )
+            plt.axis("square")
+            plt.xlabel("False Positive Rate")
+            plt.ylabel("True Positive Rate")
+            plt.title("One-vs-Rest ROC curves:\n" + str(class_of_interest) + " vs All")
+            plt.legend()
+            final_path = model_path + str(class_of_interest).lower().replace(" ", "").replace("/", "-")
+            plt.savefig(final_path)
+            plt.clf()
+
+
 
