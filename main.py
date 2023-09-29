@@ -12,7 +12,8 @@ import output
 import preprocessing
 import classification
 
-'''
+''' 
+TODO 
 1. Automatizzare le metriche dei modelli in un dataframe 
 2. Creare metodi per la comparazione dei risultati dei modelli 
 '''
@@ -40,7 +41,7 @@ output.log_features_examples(df, number=21)
 
 labels = df['medical_specialty'].tolist()  # getting the classes to perform classification
 
-# vectorize the corpus
+# vectorizing the corpus
 vectorizer = TfidfVectorizer(analyzer='word', stop_words='english', ngram_range=(1, 3), max_df=0.75, min_df=5,
                              use_idf=True, smooth_idf=True, sublinear_tf=True, max_features=max_features)
 tfidf_matrix = vectorizer.fit_transform(df['transcription'].tolist())
@@ -80,9 +81,6 @@ output.plot_confusion_matrices(predictions, y_test, category_list)
 # saving the model reports
 output.log_model_reports(predictions, y_test, category_list, txt=True, csv=True)
 
-# TODO get auc roc metrics
-
-# graphic.plot_roc_curves(predictions, y_train, y_test, category_list)
+output.plot_roc_curves(predictions, y_train, y_test, category_list)
 output.log_roc_auc_score(predictions, y_test)
 
-sys.exit()

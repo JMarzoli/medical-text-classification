@@ -6,8 +6,6 @@ import seaborn as sns
 import dataframe_image as dfi
 import numpy as np
 from prettytable import PrettyTable
-from sklearn.decomposition import PCA
-from matplotlib import pyplot as plt
 import gc
 from nltk import word_tokenize
 from sklearn.manifold import TSNE
@@ -22,11 +20,11 @@ dataset_path = log_path + 'dataset/'
 vectorization_path = log_path + 'text-representation/'
 models_path = log_path + 'classification-models/'
 
-
 np.set_printoptions(threshold=np.inf)
 
 
 ''''DATASET'''
+
 
 def log_df_info(df: pd.DataFrame):
     new_path = dataset_path + "df-info.txt"
@@ -129,6 +127,7 @@ def log_report(report: ModelReport, file_name):
     table.add_row(["Recall", report.recall])
     table.add_row(["Precision", report.precision])
     table.add_row(["F1", report.f1])
+    table.add_row(['Support', report.support])
     table.add_row(["Roc", report.roc])
     table.add_row(["Auc", report.auc])
     new_path = models_path + '/' + file_name
@@ -162,7 +161,6 @@ def plot_confusion_matrices(predictions, y_test, labels):
 def log_roc_auc_score(predictions, y_test):
     for i in range(0, len(predictions)):
         y_score = predictions[i][1]
-        model = predictions[i][2]
         micro_roc_auc_ovr = roc_auc_score(
             y_test,
             y_score,

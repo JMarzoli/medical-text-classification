@@ -90,6 +90,7 @@ class ModelReport:
     recall = None  # % of correctly labelled positive instance out of all positive labelled instance (TP/TP+FN)
     precision = None  # of correctly labelled positive instance out of all positive instance (TP/TP+FP)
     f1 = None  # combination of precision and recall (2/(1/precision)+(1(recall))
+    support = None
     roc = None
     auc = None
 
@@ -103,5 +104,6 @@ class ModelReport:
         self.recall = metrics.recall_score(self.y_test, self.y_prediction, average='micro')
         self.precision = metrics.precision_score(self.y_test, self.y_prediction, average='micro')
         self.f1 = metrics.f1_score(self.y_test, self.y_prediction, average='micro')
+        self.support = None  # TODO
         # self.roc = metrics.roc_curve(self.y_test, self.y_prediction) # TODO restricted to binary classification
         # self.auc = metrics.auc(self.y_test, self.y_prediction) # TODO remove bug

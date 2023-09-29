@@ -8,7 +8,6 @@ from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.stem import SnowballStemmer
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet
-import spacy
 import en_ner_bionlp13cg_md
 
 stop_words = stopwords.words('english')
@@ -126,32 +125,3 @@ def __merge_categories(df, receiving_cat, donor_cat):
     return df
 
 
-def __apply_knowledge(df):
-    df['medical_specialty'] = df['medical_specialty'].apply(
-        lambda x: str.strip(x))
-    mask = df['medical_specialty'] == 'Surgery'
-    df = df[~mask]
-    mask = df['medical_specialty'] == 'SOAP / Chart / Progress Notes'
-    df = df[~mask]
-    mask = df['medical_specialty'] == 'Office Notes'
-    df = df[~mask]
-    mask = df['medical_specialty'] == 'Consult - History and Phy.'
-    df = df[~mask]
-    mask = df['medical_specialty'] == 'Emergency Room Reports'
-    df = df[~mask]
-    mask = df['medical_specialty'] == 'Discharge Summary'
-    df = df[~mask]
-    '''
-    mask = df['medical_specialty'] == 'Pediatrics - Neonatal'
-    df = df[~mask]
-    '''
-    mask = df['medical_specialty'] == 'Pain Management'
-    df = df[~mask]
-    mask = df['medical_specialty'] == 'General Medicine'
-    df = df[~mask]
-    mask = df['medical_specialty'] == 'Neurosurgery'
-    df.loc[mask, 'medical_specialty'] = 'Neurology'
-    mask = df['medical_specialty'] == 'Nephrology'
-    df.loc[mask, 'medical_specialty'] = 'Urology'
-    df = df.drop(df[df['transcription'].isna()].index)
-    return df
